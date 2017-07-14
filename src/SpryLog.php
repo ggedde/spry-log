@@ -28,6 +28,12 @@ class SpryLog
 		{
 			date_default_timezone_set('America/Los_Angeles');
 			$msg = "\n".date('Y-m-d H:i:s').' '.$_SERVER['REMOTE_ADDR'].' - '.$msg;
+
+			if(!is_dir(dirname(Spry::config()->api_log_file)))
+			{
+				@mkdir(dirname(Spry::config()->api_log_file));
+			}
+
 			file_put_contents(Spry::config()->api_log_file, $msg, FILE_APPEND);
 		}
 	}
@@ -243,6 +249,12 @@ class SpryLog
 			}
 
 			$data = $errstr.$errfile.' [Line: '.(!empty($errline) ? $errline : '?')."]\n".$backtrace;
+
+			if(!is_dir(dirname(Spry::config()->php_log_file)))
+			{
+				@mkdir(dirname(Spry::config()->php_log_file));
+			}
+
 			file_put_contents(Spry::config()->php_log_file, $data, FILE_APPEND);
 		}
 	}
