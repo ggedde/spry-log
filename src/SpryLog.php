@@ -7,7 +7,6 @@ use Spry\Spry as Spry;
 /**
  *
  *  Generic Log Class to catch API Logs and PHP Error Logs
- *  Version 1.0.1
  *
  */
 
