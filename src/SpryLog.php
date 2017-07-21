@@ -360,7 +360,7 @@ class SpryLog
 
 	public static function setup_php_logs()
 	{
-		if(Spry::config()->log_php_file)
+		if(!empty(Spry::config()->log_php_file))
 		{
 	    	set_error_handler([__CLASS__, 'php_log_handler']);
 	    	register_shutdown_function([__CLASS__, 'php_shutdown_function']);
