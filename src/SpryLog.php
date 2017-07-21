@@ -12,6 +12,7 @@ use Spry\Spry as Spry;
 
 class SpryLog
 {
+
 	/**
 	 * Log a generic Message
 	 *
@@ -21,19 +22,42 @@ class SpryLog
  	 * @return bool
 	 */
 
-	private static function write_log($msg)
+	public static function log($msg)
 	{
-		if(Spry::config()->api_log_file)
+		if(!empty(Spry::config()->api_log_file))
 		{
-			date_default_timezone_set('America/Los_Angeles');
-			$msg = "\n".date('Y-m-d H:i:s').' '.$_SERVER['REMOTE_ADDR'].' - '.$msg;
+			if(isset(Spry::config()->log_format))
+			{
+				$log = str_replace(
+					[
+						'%date_time%',
+						'%ip%',
+						'%path%',
+						'%msg%'
+					],
+					[
+						date('Y-m-d H:i:s'),
+						$_SERVER['REMOTE_ADDR'],
+						Spry::get_path(),
+						$msg
+					],
+					Spry::config()->log_format
+				);
+			}
+			else
+			{
+				$log = date('Y-m-d H:i:s').' '.$_SERVER['REMOTE_ADDR'].' '.Spry::get_path().' - '.$msg;
+			}
+
+
+			$log = "\n".$log;
 
 			if(!is_dir(dirname(Spry::config()->api_log_file)))
 			{
 				@mkdir(dirname(Spry::config()->api_log_file));
 			}
 
-			file_put_contents(Spry::config()->api_log_file, $msg, FILE_APPEND);
+			return file_put_contents(Spry::config()->api_log_file, $log, FILE_APPEND);
 		}
 	}
 
@@ -49,7 +73,13 @@ class SpryLog
 
 	public static function message($msg)
 	{
-		self::write_log('Spry: '.$msg);
+		$prefix = 'Spry: ';
+		if(isset(Spry::config()->log_prefix['message']))
+		{
+			$prefix = Spry::config()->log_prefix['message'];
+		}
+
+		return self::log($prefix.$msg);
 	}
 
 
@@ -64,7 +94,13 @@ class SpryLog
 
 	public static function warning($msg)
 	{
-		self::write_log('Spry WARNING: '.$msg);
+		$prefix = 'Spry Warning: ';
+		if(isset(Spry::config()->log_prefix['warning']))
+		{
+			$prefix = Spry::config()->log_prefix['warning'];
+		}
+
+		return self::log($prefix.$msg);
 	}
 
 
@@ -79,7 +115,13 @@ class SpryLog
 
 	public static function error($msg)
 	{
-		self::write_log('Spry ERROR: '.$msg);
+		$prefix = 'Spry ERROR: ';
+		if(isset(Spry::config()->log_prefix['error']))
+		{
+			$prefix = Spry::config()->log_prefix['error'];
+		}
+
+		return self::log($prefix.$msg);
 	}
 
 
@@ -94,10 +136,17 @@ class SpryLog
 
 	public static function stop_filter($params)
 	{
+
 		$messages = (!empty($params['messages']) && is_array($params['messages']) ? implode(', ', $params['messages']) : '');
 		$msg = 'Response Code ('.$params['response_code'].') - '.$messages;
 
-		self::write_log('Spry STOPPED: '.$msg);
+		$prefix = 'Spry STOPPED: ';
+		if(isset(Spry::config()->log_prefix['stop']))
+		{
+			$prefix = Spry::config()->log_prefix['stop'];
+		}
+
+		self::log($prefix.$msg);
 	}
 
 
@@ -113,10 +162,16 @@ class SpryLog
 
 	public static function build_response_filter($response)
 	{
-		$messages = (!empty($params['messages']) && is_array($params['messages']) ? implode(', ', $params['messages']) : '');
-		$msg = 'Response Code ('.$response['response_code'].') - '.$messages;
+		$messages = (!empty($response['messages']) && is_array($response['messages']) ? ' - ' . implode(', ', $response['messages']) : '');
+		$msg = 'Response Code ('.$response['response_code'].')'.$messages;
 
-		self::write_log('Spry Build Response: '.$msg);
+		$prefix = 'Spry Response: ';
+		if(isset(Spry::config()->log_prefix['response']))
+		{
+			$prefix = Spry::config()->log_prefix['response'];
+		}
+
+		self::log($prefix.$msg);
 
 		return $response;
 	}
@@ -137,7 +192,10 @@ class SpryLog
 			'pass',
 			'access_key',
 			'key',
-			'secret'
+			'secret',
+			'login',
+			'api_key',
+			'hash',
 		];
 		$params = Spry::params();
 
@@ -149,7 +207,13 @@ class SpryLog
 			}
 		}
 
-		self::write_log("Spry Initial Request: - - - - - - - - - - - - - - - - - - \nPath: ".Spry::get_path()."\nParams:\n".print_r($params, true));
+		$prefix = 'Spry Request: ';
+		if(isset(Spry::config()->log_prefix['request']))
+		{
+			$prefix = Spry::config()->log_prefix['request'];
+		}
+
+		self::log($prefix.str_replace('Array', '', print_r($params, true)));
 	}
 
 
