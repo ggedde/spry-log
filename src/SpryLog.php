@@ -24,8 +24,10 @@ class SpryLog
 
 	public static function log($msg)
 	{
-		if(!empty(Spry::config()->api_log_file))
+		if(!empty(Spry::config()->log_api_file))
 		{
+			$file = Spry::config()->log_api_file;
+
 			if(isset(Spry::config()->log_format))
 			{
 				$log = str_replace(
@@ -52,12 +54,14 @@ class SpryLog
 
 			$log = "\n".$log;
 
-			if(!is_dir(dirname(Spry::config()->api_log_file)))
+			if(!is_dir(dirname($file)))
 			{
-				@mkdir(dirname(Spry::config()->api_log_file));
+				@mkdir(dirname($file));
 			}
 
-			return file_put_contents(Spry::config()->api_log_file, $log, FILE_APPEND);
+			self::archive_file($file);
+
+			return file_put_contents($file, $log, FILE_APPEND);
 		}
 	}
 
@@ -254,8 +258,10 @@ class SpryLog
 
 	public static function php_log_handler($errno, $errstr, $errfile, $errline)
 	{
-		if(!empty($errstr))
+		if(!empty($errstr) && !empty(Spry::config()->log_php_file))
 		{
+			$file = Spry::config()->log_php_file;
+
 			if(strpos($errstr, '[SQL Error]') !== false)
 			{
 				$errno = 'SQL Error';
@@ -313,12 +319,14 @@ class SpryLog
 
 			$data = $errstr.$errfile.' [Line: '.(!empty($errline) ? $errline : '?')."]\n".$backtrace;
 
-			if(!is_dir(dirname(Spry::config()->php_log_file)))
+			if(!is_dir(dirname($file)))
 			{
-				@mkdir(dirname(Spry::config()->php_log_file));
+				@mkdir(dirname($file));
 			}
 
-			file_put_contents(Spry::config()->php_log_file, $data, FILE_APPEND);
+			self::archive_file($file);
+
+			file_put_contents($file, $data, FILE_APPEND);
 		}
 	}
 
@@ -348,17 +356,63 @@ class SpryLog
  	 *
  	 * @access 'public'
  	 * @return void
- 	 * @final
 	 */
 
 	public static function setup_php_logs()
 	{
-		if(Spry::config()->php_log_file)
+		if(Spry::config()->log_php_file)
 		{
 	    	set_error_handler([__CLASS__, 'php_log_handler']);
 	    	register_shutdown_function([__CLASS__, 'php_shutdown_function']);
 	    }
 	}
 
+
+	/**
+	 * Archives or Cleanups the file.
+	 *
+	 * @access 'private'
+	 * @return void
+	 */
+
+	private static function archive_file($file)
+	{
+		if(empty(Spry::config()->log_max_lines) || !file_exists($file))
+		{
+			return;
+		}
+
+		$contents = file_get_contents($file);
+		$lines = explode("\n", $contents);
+
+		if(count($lines) <= Spry::config()->log_max_lines)
+		{
+			return;
+		}
+
+		if(!empty(Spry::config()->log_archive))
+		{
+			$archived_file = dirname($file).'/'.basename($file).'.'.date('Y-m-d_H-i-s').'.gz';
+
+			if($fp = gzopen($archived_file, 'wb'))
+			{
+		        if(gzwrite($fp, $contents))
+				{
+					gzclose($fp);
+					file_put_contents($file, '');
+				}
+				else
+				{
+					gzclose($fp);
+				}
+    		}
+		}
+		else
+		{
+			$new_content = implode("\n", array_slice($lines, -(Spry::config()->log_max_lines)));
+			file_put_contents($file, $new_content);
+		}
+
+	}
 
 }
