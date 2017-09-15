@@ -138,9 +138,8 @@ class SpryLog
  	 * @return bool
 	 */
 
-	public static function stop_filter($params)
+	public static function stop($params)
 	{
-
 		$messages = (!empty($params['messages']) && is_array($params['messages']) ? implode(', ', $params['messages']) : '');
 		$msg = 'Response Code ('.$params['response_code'].') - '.$messages;
 
