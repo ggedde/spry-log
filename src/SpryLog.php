@@ -39,7 +39,7 @@ class SpryLog
 					],
 					[
 						date('Y-m-d H:i:s'),
-						$_SERVER['REMOTE_ADDR'],
+						self::getIp(),
 						Spry::get_path(),
 						$msg
 					],
@@ -48,7 +48,7 @@ class SpryLog
 			}
 			else
 			{
-				$log = date('Y-m-d H:i:s').' '.$_SERVER['REMOTE_ADDR'].' '.Spry::get_path().' - '.$msg;
+				$log = date('Y-m-d H:i:s').' '.self::getIp().' '.Spry::get_path().' - '.$msg;
 			}
 
 
@@ -365,6 +365,26 @@ class SpryLog
 	    	register_shutdown_function([__CLASS__, 'php_shutdown_function']);
 	    }
 	}
+
+
+
+	/**
+	 * Gets the Ip Address and detects if is CLI or Background Process.
+ 	 *
+ 	 * @access 'private'
+ 	 * @return string
+	 */
+
+	private static function getIp()
+	{
+		if(empty($_SERVER['REMOTE_ADDR']) && Spry::is_cli())
+		{
+	    	return '127.0.0.1';
+	    }
+
+		return $_SERVER['REMOTE_ADDR'];
+	}
+
 
 
 	/**
