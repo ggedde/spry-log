@@ -141,7 +141,7 @@ class SpryLog
 	public static function stop($params)
 	{
 		$messages = (!empty($params['messages']) && is_array($params['messages']) ? implode(', ', $params['messages']) : '');
-		$msg = 'Response Code ('.$params['response_code'].') - '.$messages;
+		$msg = 'Response Code ('.$params['code'].') - '.$messages;
 
 		$prefix = 'Spry STOPPED: ';
 		if(isset(Spry::config()->log_prefix['stop']))
@@ -166,7 +166,7 @@ class SpryLog
 	public static function build_response_filter($response)
 	{
 		$messages = (!empty($response['messages']) && is_array($response['messages']) ? ' - ' . implode(', ', $response['messages']) : '');
-		$msg = 'Response Code ('.$response['response_code'].')'.$messages;
+		$msg = 'Response Code ('.$response['code'].')'.$messages;
 
 		$prefix = 'Spry Response: ';
 		if(isset(Spry::config()->log_prefix['response']))
