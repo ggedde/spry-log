@@ -46,7 +46,7 @@ $config->log_prefix = [
 ### Available Methods for Spry Hooks
 * setup_php_logs()
 * request()
+* stop($params)
 
 ### Available Methods for Spry Filters
 * response($response)
-* stop($params)
