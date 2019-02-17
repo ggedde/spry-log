@@ -34,12 +34,14 @@ class SpryLog
 					[
 						'%date_time%',
 						'%ip%',
+						'%request_id%',
 						'%path%',
 						'%msg%'
 					],
 					[
 						date('Y-m-d H:i:s'),
 						self::getIp(),
+						Spry::get_request_id(),
 						Spry::get_path(),
 						$msg
 					],
@@ -316,7 +318,36 @@ class SpryLog
 				}
 			}
 
-			$data = $errstr.$errfile.' [Line: '.(!empty($errline) ? $errline : '?')."]\n".$backtrace;
+			if(isset(Spry::config()->log_php_format))
+			{
+				$log = str_replace(
+					[
+						'%date_time%',
+						'%ip%',
+						'%request_id%',
+						'%errno%',
+						'%errstr%',
+						'%errfile%',
+						'%errline%',
+						'%backtrace%'
+					],
+					[
+						date('Y-m-d H:i:s'),
+						self::getIp(),
+						Spry::get_request_id(),
+						$errno,
+						$errstr,
+						$errfile,
+						$errline,
+						$backtrace,
+					],
+					Spry::config()->log_php_format
+				);
+			}
+			else
+			{
+				$log = date('Y-m-d H:i:s').' '.$errstr.' '.$errfile.' [Line: '.(!empty($errline) ? $errline : '?')."]\n".$backtrace;
+			}
 
 			if(!is_dir(dirname($file)))
 			{
@@ -325,7 +356,7 @@ class SpryLog
 
 			self::archive_file($file);
 
-			file_put_contents($file, $data, FILE_APPEND);
+			file_put_contents($file, $log, FILE_APPEND);
 		}
 	}
 
