@@ -201,6 +201,8 @@ class SpryLog
 			'password',
 			'pass',
 			'access_key',
+			'access_token',
+			'token',
 			'key',
 			'secret',
 			'login',
