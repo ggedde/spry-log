@@ -152,6 +152,11 @@ class SpryLog
 		}
 
 		self::log($prefix.$msg);
+
+		if(!empty($params['private_data']))
+		{
+			self::log($prefix." [START PRIVATE DATA]\n".print_r($params['private_data'], true)."\n[END PRIVATE DATA]\n");
+		}
 	}
 
 
