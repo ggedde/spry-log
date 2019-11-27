@@ -1,7 +1,7 @@
 {
-    "name": "ggedde/spry-log",
+    "name": "ggedde/spry-logger",
     "description": "Provider for Spry",
-    "type": "SpryProvider",
+    "type": "spry-provider",
     "require": {
         "php": ">=5.4.0"
     },
