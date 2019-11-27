@@ -34,12 +34,12 @@ class SpryLogger
 
     /**
      * Constructor for Logger
-     *
-     * @param array $data
-     * @param array $options
      */
-    public static function initiate($data = [], $options = 234)
+    public static function initiate()
     {
+        if (!empty(Spry::config()->logger)) {
+            $options = Spry::config()->logger;
+        }
         if (isset($options['format'])) {
             self::$format = $options['format'];
         }
@@ -61,6 +61,12 @@ class SpryLogger
         if (isset($options['archive'])) {
             self::$archive = $options['archive'];
         }
+
+        Spry::addHook('setParams', 'Spry\\SpryProvider\\SpryLogger::initialRequest');
+        Spry::addHook('stop', 'Spry\\SpryProvider\\SpryLogger::stop');
+        Spry::addFilter('buildResponse', 'Spry\\SpryProvider\\SpryLogger::buildResponseFilter');
+
+        self::setupPhpLogs();
     }
 
     /**
