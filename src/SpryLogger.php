@@ -21,6 +21,7 @@ class SpryLogger
     private static $archive = false;
     private static $format = '%date_time% %ip% %request_id% %path% - %msg%';
     private static $maxLines = 5000;
+    private static $maxArchives = 10;
     private static $phpFile = '';
     private static $phpFormat = "%date_time% %errstr% %errfile% [Line: %errline%]\n%backtrace%";
     private static $prefix = [
@@ -56,7 +57,10 @@ class SpryLogger
             self::$prefix = $options['prefix'];
         }
         if (isset($options['max_lines'])) {
-            self::$maxLines = $options['max_lines'];
+            self::$maxLines = intval($options['max_lines']);
+        }
+        if (isset($options['max_archives'])) {
+            self::$maxArchives = intval($options['max_archives']);
         }
         if (isset($options['archive'])) {
             self::$archive = $options['archive'];
@@ -456,6 +460,20 @@ class SpryLogger
                     file_put_contents($file, '');
                 } else {
                     gzclose($fp);
+                }
+            }
+
+            if (!empty(self::$maxArchives)) {
+                $archives = glob(dirname($file).'/'.basename($file).'.*.gz');
+                if (!empty($archives) && count($archives) > self::$maxArchives) {
+                    $removeCount = count($archives) - self::$maxArchives;
+                    if ($removeCount) {
+                        for ($i = 0; $i < $removeCount; $i++) {
+                            if (file_exists($archives[$i])) {
+                                unlink($archives[$i]);
+                            }
+                        }
+                    }
                 }
             }
         } else {
