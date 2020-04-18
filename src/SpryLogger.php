@@ -223,8 +223,8 @@ class SpryLogger
      */
     public static function buildResponseFilter($response)
     {
-        $messages = (!empty($response['messages']) && is_array($response['messages']) ? ' - '.implode(', ', (array) $response['messages']) : '');
-        $msg = 'Response Code ('.$response['code'].')'.$messages;
+        $messages = (!empty($response->messages) && is_array($response->messages) ? ' - '.implode(', ', (array) $response->messages) : '');
+        $msg = 'Response Code ('.$response->code.')'.$messages;
 
         $prefix = 'Spry Response: ';
         if (isset(self::$prefix['response'])) {
