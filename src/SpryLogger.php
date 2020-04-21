@@ -17,8 +17,10 @@ use Spry\Spry;
 
 class SpryLogger
 {
+    private static $initiated = false;
     private static $apiFile = '';
     private static $archive = false;
+    private static $logCli = true;
     private static $format = '%date_time% %ip% %request_id% %path% - %msg%';
     private static $maxLines = 5000;
     private static $maxArchives = 10;
@@ -41,6 +43,17 @@ class SpryLogger
         if (!empty(Spry::config()->logger)) {
             $options = Spry::config()->logger;
         }
+
+        if (isset($options['log_cli'])) {
+            self::$logCli = $options['log_cli'];
+        }
+
+        if (self::$initiated || (!self::$logCli && Spry::isCli())) {
+            return;
+        }
+
+        self::$initiated = true;
+
         if (isset($options['format'])) {
             self::$format = $options['format'];
         }
@@ -68,7 +81,7 @@ class SpryLogger
 
         Spry::addHook('setParams', 'Spry\\SpryProvider\\SpryLogger::initialRequest');
         Spry::addHook('stop', 'Spry\\SpryProvider\\SpryLogger::stop');
-        Spry::addFilter('buildResponse', 'Spry\\SpryProvider\\SpryLogger::buildResponseFilter');
+        Spry::addFilter('response', 'Spry\\SpryProvider\\SpryLogger::responseFilter');
 
         self::setupPhpLogs();
     }
@@ -77,12 +90,13 @@ class SpryLogger
      * Log a generic Message
      *
      * @param string $msg
+     * @param string $type
      *
      * @access public
      *
      * @return bool
      */
-    public static function log($msg)
+    public static function log($msg, $type = 'message')
     {
         if (!empty(self::$apiFile)) {
             $file = self::$apiFile;
@@ -117,7 +131,18 @@ class SpryLogger
 
             self::archiveFile($file);
 
-            return file_put_contents($file, $log, FILE_APPEND);
+            $response = file_put_contents($file, $log, FILE_APPEND);
+
+            Spry::runHook('spryApiLog', [
+                'date' => date('Y-m-d H:i:s'),
+                'ip' => self::getIp(),
+                'requestId' => Spry::getRequestId(),
+                'path' => Spry::getPath(),
+                'message' => $msg,
+                'type' => $type,
+            ]);
+
+            return $response;
         }
     }
 
@@ -139,7 +164,7 @@ class SpryLogger
             $prefix = self::$prefix['message'];
         }
 
-        return self::log($prefix.$msg);
+        return self::log($prefix.$msg, 'message');
     }
 
 
@@ -160,7 +185,7 @@ class SpryLogger
             $prefix = self::$prefix['warning'];
         }
 
-        return self::log($prefix.$msg);
+        return self::log($prefix.$msg, 'warning');
     }
 
 
@@ -181,7 +206,7 @@ class SpryLogger
             $prefix = self::$prefix['error'];
         }
 
-        return self::log($prefix.$msg);
+        return self::log($prefix.$msg, 'error');
     }
 
 
@@ -189,26 +214,26 @@ class SpryLogger
     /**
      * Log a Hard Stop Error
      *
-     * @param mixed $params
+     * @param mixed $response
      *
      * @access public
      *
      * @return bool
      */
-    public static function stop($params)
+    public static function stop($response)
     {
-        $messages = (!empty($params['messages']) && is_array($params['messages']) ? implode(', ', $params['messages']) : '');
-        $msg = 'Response Code ('.$params['code'].') - '.$messages;
+        $messages = (!empty($response->messages) && is_array($response->messages) ? implode(', ', $response->messages) : '');
+        $msg = 'Response Code ('.$response->code.') - '.$messages;
 
         $prefix = 'Spry STOPPED: ';
         if (isset(self::$prefix['stop'])) {
             $prefix = self::$prefix['stop'];
         }
 
-        self::log($prefix.$msg);
+        self::log($prefix.$msg, 'error');
 
-        if (!empty($params['private_data'])) {
-            self::log($prefix." [START PRIVATE DATA]\n".print_r($params['private_data'], true)."\n[END PRIVATE DATA]\n");
+        if (!empty($response->privateData)) {
+            self::log($prefix." [START PRIVATE DATA]\n".print_r($response->privateData, true)."\n[END PRIVATE DATA]\n");
         }
     }
 
@@ -221,7 +246,7 @@ class SpryLogger
      *
      * @return bool
      */
-    public static function buildResponseFilter($response)
+    public static function responseFilter($response)
     {
         $messages = (!empty($response->messages) && is_array($response->messages) ? ' - '.implode(', ', (array) $response->messages) : '');
         $msg = 'Response Code ('.$response->code.')'.$messages;
@@ -378,6 +403,18 @@ class SpryLogger
             self::archiveFile($file);
 
             file_put_contents($file, $log, FILE_APPEND);
+
+            Spry::runHook('spryPhpLog', [
+                'date' => date('Y-m-d H:i:s'),
+                'ip' => self::getIp(),
+                'requestId' => Spry::getRequestId(),
+                'path' => Spry::getPath(),
+                'message' => $log,
+                'errno' => $errno,
+                'errstr' => $errstr,
+                'errfile' => $errfile,
+                'errline' => $errline,
+            ]);
         }
     }
 
