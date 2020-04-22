@@ -230,11 +230,19 @@ class SpryLogger
             $prefix = self::$prefix['stop'];
         }
 
-        self::log($prefix.$msg, 'error');
-
-        if (!empty($response->privateData)) {
-            self::log($prefix." [START PRIVATE DATA]\n".print_r($response->privateData, true)."\n[END PRIVATE DATA]\n");
+        $backtrace = "\n";
+        $dbts = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
+        foreach ($dbts as $dbt) {
+            if (!empty($dbt['file']) && !empty($dbt['function']) && 'stop' === $dbt['function']) {
+                $backtrace .= ' - - Trace: '.$dbt['file'].' [Line: '.(!empty($dbt['line']) ? $dbt['line'] : '?').'] - Function: '.$dbt['function']."\n";
+            }
         }
+        $privateData = '';
+        if (!empty($response->privateData)) {
+            $privateData = "\n[START PRIVATE DATA]\n".print_r($response->privateData, true)."\n[END PRIVATE DATA]\n";
+        }
+
+        self::log($prefix.$msg.$backtrace.$privateData, 'error');
     }
 
     /**
@@ -361,7 +369,7 @@ class SpryLogger
             }
 
             $backtrace = '';
-            $dbts = debug_backtrace();
+            $dbts = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
             foreach ($dbts as $dbt) {
                 if (!empty($dbt['file'])) {
                     $backtrace .= ' - - Trace: '.$dbt['file'].' [Line: '.(!empty($dbt['line']) ? $dbt['line'] : '?').'] - Function: '.$dbt['function']."\n";
