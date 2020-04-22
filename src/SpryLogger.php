@@ -231,10 +231,12 @@ class SpryLogger
         }
 
         $backtrace = "\n";
-        $dbts = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
+        $traceStarted = false;
+        $dbts = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 8);
         foreach ($dbts as $dbt) {
-            if (!empty($dbt['file']) && !empty($dbt['function']) && 'stop' === $dbt['function']) {
+            if (!empty($dbt['file']) && !empty($dbt['function']) && ($traceStarted || 'stop' === $dbt['function'])) {
                 $backtrace .= ' - - Trace: '.$dbt['file'].' [Line: '.(!empty($dbt['line']) ? $dbt['line'] : '?').'] - Function: '.$dbt['function']."\n";
+                $traceStarted = true;
             }
         }
         $privateData = '';
