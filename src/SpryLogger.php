@@ -89,8 +89,8 @@ class SpryLogger
     /**
      * Log a generic Message
      *
-     * @param string $msg
-     * @param string $type
+     * @param string|array $msg
+     * @param string       $type
      *
      * @access public
      *
@@ -100,6 +100,10 @@ class SpryLogger
     {
         if (!empty(self::$apiFile)) {
             $file = self::$apiFile;
+
+            if (is_array($msg)) {
+                $msg = print_r($msg, true);
+            }
 
             if (isset(self::$format)) {
                 $log = str_replace(
@@ -151,7 +155,7 @@ class SpryLogger
     /**
      * Log a generic Message
      *
-     * @param string $msg
+     * @param string|array $msg
      *
      * @access public
      *
@@ -159,6 +163,10 @@ class SpryLogger
      */
     public static function message($msg)
     {
+        if (is_array($msg)) {
+            $msg = print_r($msg, true);
+        }
+
         $prefix = 'Spry: ';
         if (isset(self::$prefix['message'])) {
             $prefix = self::$prefix['message'];
@@ -172,7 +180,7 @@ class SpryLogger
     /**
      * Log a generic Warning
      *
-     * @param string $msg
+     * @param string|array $msg
      *
      * @access public
      *
@@ -180,6 +188,10 @@ class SpryLogger
      */
     public static function warning($msg)
     {
+        if (is_array($msg)) {
+            $msg = print_r($msg, true);
+        }
+
         $prefix = 'Spry Warning: ';
         if (isset(self::$prefix['warning'])) {
             $prefix = self::$prefix['warning'];
@@ -193,7 +205,7 @@ class SpryLogger
     /**
      * Log a generic Error
      *
-     * @param string $msg
+     * @param string|array $msg
      *
      * @access public
      *
@@ -201,6 +213,10 @@ class SpryLogger
      */
     public static function error($msg)
     {
+        if (is_array($msg)) {
+            $msg = print_r($msg, true);
+        }
+
         $prefix = 'Spry ERROR: ';
         if (isset(self::$prefix['error'])) {
             $prefix = self::$prefix['error'];
