@@ -146,7 +146,7 @@ class SpryLogger
                 'type' => $type,
             ]);
 
-            return $response;
+            return !empty($response);
         }
     }
 
@@ -234,7 +234,7 @@ class SpryLogger
      *
      * @access public
      *
-     * @return bool
+     * @return void
      */
     public static function stop($response)
     {
@@ -266,11 +266,11 @@ class SpryLogger
     /**
      * Log a Response
      *
-     * @param string $response
+     * @param object $response
      *
      * @access public
      *
-     * @return bool
+     * @return object
      */
     public static function responseFilter($response)
     {
@@ -335,8 +335,6 @@ class SpryLogger
      * @access public
      *
      * @return void
-     *
-     * @final
      */
     public static function phpLogHandler($errno, $errstr, $errfile, $errline)
     {
@@ -450,8 +448,6 @@ class SpryLogger
      * @access public
      *
      * @return void
-     *
-     * @final
      */
     public static function phpShutdownFunction()
     {
