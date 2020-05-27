@@ -321,7 +321,7 @@ class SpryLogger
             $prefix = self::$prefix['request'];
         }
 
-        self::log($prefix.str_replace('Array', '', print_r($params, true)));
+        self::log($prefix.(empty($params) ? 'Empty' : str_replace('Array', '', print_r($params, true))));
     }
 
     /**
