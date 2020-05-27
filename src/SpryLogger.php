@@ -485,11 +485,11 @@ class SpryLogger
      */
     private static function getIp()
     {
-        if (empty($_SERVER['REMOTE_ADDR']) && Spry::isCli()) {
+        if (empty($_SERVER['REMOTE_ADDR']) && (Spry::isCli() || Spry::isCron() || Spry::isBackgroundProcess())) {
             return '127.0.0.1';
         }
 
-        return $_SERVER['REMOTE_ADDR'];
+        return $_SERVER['REMOTE_ADDR'] ?? 'No IP';
     }
 
     /**
